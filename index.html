@@ -970,6 +970,7 @@
         let timeScale = 1.0; 
         let focusMeter = 100; 
         let isHookActive = false; 
+        let hookFrameCount = 0; 
 
         let parallaxLayers = [
             { id: 'clouds', items: [], speed: 0.1, color: 'rgba(255,255,255,0.8)' },
@@ -1838,6 +1839,65 @@
                     particles.push(flame);
                 }
 
+                if (isHookActive) {
+                    ctx.save();
+                    let startX = this.isDucking ? w * 0.95 : w * 0.9;
+                    let startY = this.isDucking ? h * 0.65 : h * 0.25;
+                    
+                    let reach = 0;
+                    let maxReach = 350;
+                    if (hookFrameCount < 15) {
+                        reach = (hookFrameCount / 15) * maxReach;
+                    } else if (hookFrameCount < 25) {
+                        reach = maxReach;
+                    } else {
+                        reach = (1 - (hookFrameCount - 25) / 23) * maxReach;
+                    }
+                    
+                    if (reach > 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        
+                        let segments = 24;
+                        for (let i = 1; i <= segments; i++) {
+                            let t = i / segments;
+                            let px = startX + reach * t;
+                            let py = startY + Math.sin(t * Math.PI * 4 - frames * 0.3) * 12 * Math.sin(t * Math.PI);
+                            ctx.lineTo(px, py);
+                        }
+                        
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        
+                        ctx.strokeStyle = 'rgba(244, 63, 94, 0.2)';
+                        ctx.lineWidth = 12;
+                        ctx.stroke();
+                        
+                        ctx.strokeStyle = 'rgba(244, 63, 94, 0.55)';
+                        ctx.lineWidth = 6;
+                        ctx.stroke();
+                        
+                        ctx.strokeStyle = '#f43f5e';
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                        
+                        let tipX = startX + reach;
+                        let tipY = startY;
+                        
+                        ctx.fillStyle = '#ffe4e6';
+                        ctx.beginPath();
+                        ctx.arc(tipX, tipY, 4.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = '#ffe4e6';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(tipX, tipY, 8, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+
                 ctx.restore();
             },
             
@@ -1861,6 +1921,14 @@
                 if (this.powerTimer > 0) {
                     this.powerTimer--;
                     if(this.powerTimer === 0) { this.currentPower = null; gameSpeed = GAME_SPEED_START + (currentStage-1)*2 + (score - (currentStage-1)*1000)/100*0.4; }
+                }
+
+                if (isHookActive) {
+                    hookFrameCount += timeScale;
+                    if (hookFrameCount >= 48) {
+                        isHookActive = false;
+                        hookFrameCount = 0;
+                    }
                 }
             },
 
@@ -2195,12 +2263,28 @@
 
         class PowerUp {
             constructor() {
-                this.types = ['pepper', 'pepper', 'magnet', 'leaf'];
+                this.types = ['pepper', 'pepper', 'pepper', 'magnet', 'leaf'];
                 this.type = this.types[Math.floor(Math.random() * this.types.length)];
                 this.x = canvas.width; this.y = GROUND_Y - 40 - Math.random()*60; this.w = 20; this.h = 20;
                 this.markedForDeletion = false; this.anim = 0;
             }
-            update() { this.x -= gameSpeed * timeScale; this.anim += 0.1 * timeScale; if (this.x+this.w < 0) this.markedForDeletion = true; }
+            update() {
+                if (isHookActive) {
+                    let dx = (dino.x + dino.width/2) - (this.x + this.w/2);
+                    let dy = (dino.y + dino.height/2) - (this.y + this.h/2);
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    let pullDist = 450;
+                    let pullSpeed = 30;
+                    if (dist < pullDist) {
+                        this.x += (dx/dist)*pullSpeed;
+                        this.y += (dy/dist)*pullSpeed;
+                        return;
+                    }
+                }
+                this.x -= gameSpeed * timeScale;
+                this.anim += 0.1 * timeScale;
+                if (this.x+this.w < 0) this.markedForDeletion = true;
+            }
             draw() {
                 ctx.save();
                 let floatOffset = Math.sin(this.anim * 0.1) * 6;
@@ -2624,7 +2708,7 @@
                 obstacles.push(new Obstacle(type));
             }
             if (frames % 60 === 0 && Math.random() < 0.6) coins.push(new Coin());
-            if (frames % 400 === 0 && Math.random() < 0.5) items.push(new PowerUp());
+            if (frames % 250 === 0 && Math.random() < 0.6) items.push(new PowerUp());
         }
 
         function handleBossCollision() {
@@ -2666,9 +2750,9 @@
         function activateHook() {
             if(isHookActive) return;
             isHookActive = true;
+            hookFrameCount = 0;
             AudioEngine.playSFXPowerup();
             floatingTexts.push(new FloatingText(dino.x, dino.y - 40, "LÍNGUA!", "#fbbf24"));
-            setTimeout(() => { isHookActive = false; }, 800);
         }
 
         function toggleFocus() {
@@ -2687,6 +2771,76 @@
         function handleCollisions() {
             let dWidth = dino.isDucking ? dino.width + 24 : dino.width;
             const hitBox = { x: dino.x+5, y: dino.y+5, w: dWidth-10, h: dino.height-10 }; 
+
+            // Colisão da Língua Chicote com Obstáculos, Moedas e Itens
+            if (isHookActive) {
+                let bocaX = dino.x + (dino.isDucking ? dino.width * 0.95 : dino.width * 0.9);
+                let bocaY = dino.y + (dino.isDucking ? dino.height * 0.65 : dino.height * 0.25);
+                
+                let reach = 0;
+                let maxReach = 350;
+                if (hookFrameCount < 15) {
+                    reach = (hookFrameCount / 15) * maxReach;
+                } else if (hookFrameCount < 25) {
+                    reach = maxReach;
+                } else {
+                    reach = (1 - (hookFrameCount - 25) / 23) * maxReach;
+                }
+                
+                const hookBox = { x: bocaX, y: bocaY - 15, w: reach, h: 30 };
+                
+                // Colisão da língua com obstáculos (matar tatus, cactos, pássaros, lama)
+                obstacles.forEach(obs => {
+                    if (!obs.markedForDeletion) {
+                        let isHit = hookBox.x < obs.x+obs.w && hookBox.x+hookBox.w > obs.x && hookBox.y < obs.y+obs.h && hookBox.y+hookBox.h > obs.y;
+                        if (isHit) {
+                            obs.markedForDeletion = true;
+                            AudioEngine.playSFXHit();
+                            cameraShake = 8;
+                            
+                            let partColor = '#16a34a'; // Verde por padrão (cactos)
+                            if (obs.type === 'tatu') partColor = '#78350f';
+                            if (obs.type === 'mud') partColor = '#451a03';
+                            if (obs.type === 'bird') partColor = '#f43f5e';
+                            
+                            for(let i=0; i<12; i++) {
+                                particles.push(new Particle(obs.x + obs.w/2, obs.y + obs.h/2, partColor, 'gravity'));
+                            }
+                            
+                            floatingTexts.push(new FloatingText(obs.x, obs.y - 20, "DESTRUÍDO! +50 XP", "#22c55e"));
+                            gainXP(20);
+                            score += 50;
+                        }
+                    }
+                });
+                
+                // Colisão da língua com moedas e itens (coleta rápida no contato)
+                [...coins, ...items].forEach(obj => {
+                    if (!obj.markedForDeletion) {
+                        let isHit = hookBox.x < obj.x+obj.w && hookBox.x+hookBox.w > obj.x && hookBox.y < obj.y+obj.h && hookBox.y+hookBox.h > obj.y;
+                        if (isHit) {
+                            obj.markedForDeletion = true;
+                            if (obj instanceof Coin) {
+                                if(activeMission.type === 'coins') activeMission.current++;
+                                comboTimer = 120;
+                                comboMultiplier = Math.min(5.0, comboMultiplier + 0.1);
+                                sessionCoins++; gameData.coins++; document.getElementById('txtCoins').innerText = sessionCoins;
+                                lives = Math.min(MAX_LIVES, lives + 0.5); score += 15 * comboMultiplier;
+                                AudioEngine.playSFXCoin();
+                                for(let i=0; i<5; i++) particles.push(new Particle(obj.x, obj.y, '#fbbf24', 'gravity'));
+                            } else if (obj instanceof PowerUp) {
+                                AudioEngine.playSFXPowerup();
+                                dino.currentPower = obj.type;
+                                let multiplier = gameData.upgrades[obj.type] || 1;
+                                if(obj.type === 'pepper') { dino.powerTimer = 600 * multiplier; gameSpeed += 5; } 
+                                if(obj.type === 'magnet') dino.powerTimer = 600 * multiplier; 
+                                if(obj.type === 'leaf') dino.powerTimer = 600 * multiplier;
+                                floatingTexts.push(new FloatingText(dino.x, dino.y - 60, obj.type.toUpperCase(), '#22c55e'));
+                            }
+                        }
+                    }
+                });
+            }
 
             [...coins, ...items].forEach(obj => {
                 if (hitBox.x < obj.x+obj.w && hitBox.x+hitBox.w > obj.x && hitBox.y < obj.y+obj.h && hitBox.y+hitBox.h > obj.y) {
@@ -3214,10 +3368,13 @@
             dino.update(); dino.draw();
             
             // Lógica Global de TimeScale
-            if(focusMeter < 100 && timeScale === 1.0) focusMeter += 0.1;
+            if(focusMeter < 100 && timeScale === 1.0) focusMeter += 0.15;
             if(timeScale < 1.0) {
-                focusMeter -= 0.5;
-                if(focusMeter <= 0) timeScale = 1.0;
+                focusMeter -= 0.2;
+                if(focusMeter <= 0) {
+                    timeScale = 1.0;
+                    floatingTexts.push(new FloatingText(dino.x, dino.y - 60, "INSTINTO OFF", "#16a34a"));
+                }
             }
 
             if (isBossFight && bossEntity) {
