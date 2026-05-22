@@ -241,38 +241,44 @@
                 </div>
 
                 <div class="flex items-center justify-between w-28 bg-white/5 rounded-lg p-1 border border-white/5">
-                    <button onclick="changeStage(-1)" class="w-6 h-6 bg-white/5 hover:bg-white/10 rounded text-white font-black">&lt;</button>
+                    <button onclick="changeStage(-1)" class="w-6 h-6 bg-white/5 hover:bg-white/10 rounded text-white font-black active:scale-90 transition-transform">&lt;</button>
                     <div class="flex flex-col items-center">
                         <span class="text-white/20 text-[5px] font-black uppercase tracking-tighter">LVL</span>
                         <span class="text-white font-black text-[9px] uppercase" id="lblStage">1</span>
                     </div>
-                    <button onclick="changeStage(1)" class="w-6 h-6 bg-white/5 hover:bg-white/10 rounded text-white font-black">&gt;</button>
+                    <button onclick="changeStage(1)" class="w-6 h-6 bg-white/5 hover:bg-white/10 rounded text-white font-black active:scale-90 transition-transform">&gt;</button>
                 </div>
             </div>
             
             <div class="flex flex-col gap-1.5 w-full max-w-[220px] shrink-0">
-                <button id="btnLogin" onclick="CrazyGamesEngine.showAuth()" class="w-full py-2 bg-blue-600/30 hover:bg-blue-600 text-blue-100 font-bold rounded-lg border border-blue-500/30 transition-all text-[8px] uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
+                <button id="btnLogin" onclick="CrazyGamesEngine.showAuth()" class="w-full py-2 bg-blue-600/30 hover:bg-blue-600 text-blue-100 font-bold rounded-lg border border-blue-500/30 transition-all active:scale-95 active:translate-y-[1px] text-[8px] uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
                     LOGIN / PROFILE
                 </button>
 
-                <button onclick="startGame('normal')" class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-black rounded-xl shadow-lg border-b-4 border-emerald-800 uppercase tracking-tighter text-sm animate-[pulse_2s_infinite]" t="play">
+                <button onclick="startGame('normal')" class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-black rounded-xl shadow-lg border-b-4 border-emerald-800 active:border-b-0 active:translate-y-[4px] active:scale-[0.98] transition-all duration-75 uppercase tracking-tighter text-sm animate-[pulse_2s_infinite]" t="play">
                     START ADVENTURE
                 </button>
                 <div class="grid grid-cols-2 gap-1.5">
-                    <button onclick="startGame('expert')" class="py-1.5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg border border-white/5 transition-all flex flex-col items-center justify-center">
+                    <button onclick="startGame('expert')" class="py-1.5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg border border-white/5 transition-all active:scale-95 active:translate-y-[1px] flex flex-col items-center justify-center">
                         <span class="text-[5px] opacity-40 uppercase">HARD</span>
                         <span class="text-[7px] tracking-widest uppercase">EXPERT</span>
                     </button>
-                    <button onclick="CrazyGamesEngine.inviteFriend()" class="py-1.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 font-bold rounded-lg border border-blue-500/20 transition-all flex flex-col items-center justify-center">
+                    <button onclick="CrazyGamesEngine.inviteFriend()" class="py-1.5 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 font-bold rounded-lg border border-blue-500/20 transition-all active:scale-95 active:translate-y-[1px] flex flex-col items-center justify-center">
                         <span class="text-[5px] opacity-40 uppercase">SHARE</span>
                         <span class="text-[7px] tracking-widest uppercase">INVITE</span>
                     </button>
-                    <button onclick="openShop()" class="py-1.5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg border border-white/5 transition-all flex flex-col items-center justify-center col-span-2">
+                    <button onclick="openShop()" class="py-1.5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg border border-white/5 transition-all active:scale-95 active:translate-y-[1px] flex flex-col items-center justify-center col-span-2">
                         <span class="text-[5px] opacity-40 uppercase">SKINS</span>
                         <span class="text-[7px] tracking-widest uppercase">SHOP</span>
                     </button>
                 </div>
+                <button id="btnFullscreen" onclick="requestFullscreenMobile()" class="w-full py-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-white font-black rounded-xl border-b-4 border-amber-800 active:border-b-0 active:translate-y-[4px] active:scale-[0.98] transition-all duration-75 text-[8px] uppercase tracking-widest mt-2 flex items-center justify-center gap-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9m5.25 11.25v-4.5m0 4.5h-4.5m4.5 0L15 15"/>
+                    </svg>
+                    <span t="fullscreen_btn">FULLSCREEN</span>
+                </button>
             </div>
 
             <div class="flex flex-col items-center gap-2 shrink-0">
@@ -389,28 +395,46 @@
         // VIEWPORT ADJUSTMENTS FOR MOBILE FULLSCREEN
         // ==========================================
         function adjustViewport() {
-            let vh = window.innerHeight * 0.01;
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            if (window.visualViewport) {
+                width = window.visualViewport.width;
+                height = window.visualViewport.height;
+            }
+            let vh = height * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
+            
+            // Set body and document element heights directly to solve the iOS Safari/Chrome mobile layout cut-off issue
+            document.body.style.height = `${height}px`;
+            document.documentElement.style.height = `${height}px`;
         }
         function requestFullscreenMobile() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                let docEl = document.documentElement;
-                try {
-                    if (docEl.requestFullscreen) {
-                        docEl.requestFullscreen().catch(() => {});
-                    } else if (docEl.webkitRequestFullscreen) {
-                        docEl.webkitRequestFullscreen().catch(() => {});
-                    } else if (docEl.mozRequestFullScreen) {
-                        docEl.mozRequestFullScreen().catch(() => {});
-                    } else if (docEl.msRequestFullscreen) {
-                        docEl.msRequestFullscreen().catch(() => {});
-                    }
-                } catch (e) {
-                    console.log("Fullscreen blocked or not supported", e);
+            // Attempt to trigger native fullscreen on mobile browsers or general browsers
+            let docEl = document.documentElement;
+            try {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen().catch((err) => { console.log("RequestFullscreen failed:", err); });
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen().catch((err) => { console.log("WebkitRequestFullscreen failed:", err); });
+                } else if (docEl.mozRequestFullScreen) {
+                    docEl.mozRequestFullScreen().catch((err) => { console.log("MozRequestFullScreen failed:", err); });
+                } else if (docEl.msRequestFullscreen) {
+                    docEl.msRequestFullscreen().catch((err) => { console.log("MsRequestFullscreen failed:", err); });
                 }
+            } catch (e) {
+                console.log("Fullscreen blocked or not supported", e);
             }
+            // Trigger recalculation after a brief delay for transition stability
+            setTimeout(() => {
+                adjustViewport();
+                if (typeof resizeCanvas === 'function') resizeCanvas();
+            }, 150);
         }
         adjustViewport();
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', adjustViewport);
+            window.visualViewport.addEventListener('scroll', adjustViewport);
+        }
 
         // ==========================================
         // GAME BRIDGE (MULTI-PLATFORM ABSTRACTION)
@@ -980,10 +1004,16 @@
         let GROUND_Y = 0;
 
         function resizeCanvas() {
-            if (window.innerWidth < 10 || window.innerHeight < 10) return; // Segurança contra dimensões inválidas
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            if (window.visualViewport) {
+                width = window.visualViewport.width;
+                height = window.visualViewport.height;
+            }
+            if (width < 10 || height < 10) return; // Safety guard against invalid bounds
+            canvas.width = width; canvas.height = height;
             
-            // Garantia extra que o contexto não perdeu o estado
+            // Extra guarantee that state context isn't lost
             if (ctx) ctx.setTransform(1, 0, 0, 1, 0, 0); 
             
             let oldGround = GROUND_Y;
@@ -2528,6 +2558,7 @@
                 expert_btn: "EXPERT",
                 items: "ITEMS",
                 shop_btn: "SHOP",
+                fullscreen_btn: "FULLSCREEN",
                 // Items
                 skin_verde: "Moss Lizard", skin_cinza: "Stone Lizard", skin_rosa: "Agreste Calango",
                 skin_azul: "River Lizard", skin_albino: "Albino Lizard", skin_noturna: "Caatinga Calango",
@@ -2584,6 +2615,7 @@
                 expert_btn: "SOBREVIVÊNCIA",
                 items: "ITENS",
                 shop_btn: "LOJA",
+                fullscreen_btn: "TELA CHEIA",
                 // Items
                 skin_verde: "Lagarto Musgo", skin_cinza: "Lagarto de Pedra", skin_rosa: "Calango do Agreste",
                 skin_azul: "Lagarto do Rio", skin_albino: "Lagarto Albino", skin_noturna: "Calango da Caatinga",
@@ -3540,6 +3572,18 @@
                 resizeCanvas();
             }, 500);
         });
+
+        // Block elastic scroll dragging behavior on touch devices when playing
+        document.addEventListener('touchmove', function(e) {
+            if (gameActive) {
+                e.preventDefault();
+            } else {
+                let isScrollable = e.target.closest('#shopScreen') || e.target.closest('#startScreen');
+                if (!isScrollable) {
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
 
         // Sincronização Inicial
         window.addEventListener('DOMContentLoaded', async () => {
