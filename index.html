@@ -200,9 +200,8 @@
         .btn-desert:active { transform: translateY(3px); box-shadow: 0 3px 0 #78350f; }
 
         @media (min-width: 768px) {
-            .mobile-controls { display: none; }
+            body:not(.touch-device):not(.show-controls-desktop) .mobile-controls { display: none !important; }
             body.custom-mode-active .mobile-controls { display: block !important; }
-            body.show-controls-desktop .mobile-controls { display: block !important; }
         }
 
         .customizing {
@@ -541,6 +540,10 @@
         let isCustomMode = false;
 
         function loadCustomLayout() {
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                document.body.classList.add('touch-device');
+            }
+            
             let hasCustom = false;
             customizedElementIds.forEach(id => {
                 const el = document.getElementById(id);
@@ -624,7 +627,11 @@
                     // Remove listeners de eventos para evitar interferência na gameplay
                     el.onmousedown = null;
                     el.ontouchstart = null;
-                    el.onclick = null;
+                    if (id === 'btnPause') {
+                        el.onclick = () => togglePause();
+                    } else {
+                        el.onclick = null;
+                    }
                     
                     const config = {
                         left: el.style.left,
@@ -700,10 +707,13 @@
                 newLeft = Math.max(0, Math.min(window.innerWidth - rect.width, newLeft));
                 newTop = Math.max(0, Math.min(window.innerHeight - rect.height, newTop));
                 
+                const pctLeft = (newLeft / window.innerWidth) * 100;
+                const pctTop = (newTop / window.innerHeight) * 100;
+                
                 el.style.bottom = 'auto';
                 el.style.right = 'auto';
-                el.style.left = newLeft + 'px';
-                el.style.top = newTop + 'px';
+                el.style.left = pctLeft.toFixed(2) + '%';
+                el.style.top = pctTop.toFixed(2) + '%';
             }
             
             function closeDragElement() {
@@ -747,6 +757,11 @@
                 el.style.transform = '';
                 el.dataset.scale = 1;
                 el.classList.remove('custom-selected');
+                if (id === 'btnPause') {
+                    el.onclick = () => togglePause();
+                } else {
+                    el.onclick = null;
+                }
             });
             activeCustomElement = null;
             document.body.classList.remove('show-controls-desktop');
