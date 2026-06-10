@@ -110,6 +110,57 @@
             border-color: rgba(255, 255, 255, 0.2) !important;
         }
 
+        /* Portrait Warning Overlay */
+        #portraitOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+            z-index: 999999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-family: 'Press Start 2P', system-ui, sans-serif;
+            text-align: center;
+            padding: 2rem;
+        }
+        @media (orientation: portrait) {
+            #portraitOverlay {
+                display: flex !important;
+            }
+        }
+        .rotate-device-animation {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 2rem;
+            animation: rotateDevice 2s infinite ease-in-out;
+            color: #fbbf24;
+        }
+        @keyframes rotateDevice {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Drag and Drop Layout Customize Mode */
+        .ui-draggable-highlight {
+            border: 2px dashed rgba(234, 179, 8, 0.5) !important;
+            border-radius: 12px;
+            cursor: move !important;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.3) !important;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .ui-draggable-highlight * {
+            pointer-events: none !important;
+        }
+        .ui-draggable-selected {
+            border-color: #fbbf24 !important;
+            border-style: solid !important;
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.7) !important;
+        }
+
         .btn-acid {
             background: #22c55e;
             color: #fff;
@@ -156,25 +207,50 @@
 <body class="w-full flex flex-col items-center justify-center relative bg-black">
     <div class="vignette"></div>
 
+    <!-- Portrait Warning Overlay -->
+    <div id="portraitOverlay">
+        <svg class="rotate-device-animation" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" transform="rotate(90 12 12)"></rect>
+            <path d="M12 18h.01"></path>
+        </svg>
+        <h2 class="text-xl font-bold uppercase tracking-wide text-yellow-400 mb-2" t="rotate_title">GIRE A TELA</h2>
+        <p class="text-[10px] opacity-80 leading-relaxed max-w-sm uppercase" t="rotate_desc">Por favor, vire o dispositivo para o modo paisagem para jogar.</p>
+    </div>
+
+    <!-- Layout Customizer Overlay / Toolbar -->
+    <div id="layoutCustomizerPanel" class="hidden absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/95 border-2 border-yellow-500/40 rounded-2xl p-4 flex flex-col items-center gap-3 z-[1000] shadow-2xl pointer-events-auto backdrop-blur-md min-w-[280px]">
+        <div class="text-[10px] font-black text-yellow-400 uppercase tracking-widest">⚙️ CUSTOMIZE UI</div>
+        <div class="flex gap-2">
+            <button onclick="adjustActiveScale(0.1)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-white/10 active:scale-95 transition-all">➕ SCALE</button>
+            <button onclick="adjustActiveScale(-0.1)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-white/10 active:scale-95 transition-all">➖ SCALE</button>
+        </div>
+        <div class="flex gap-2 w-full">
+            <button onclick="resetCustomLayout()" class="flex-1 px-3 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-xl text-[9px] font-black tracking-wider uppercase active:scale-95 transition-all">RESET</button>
+            <button onclick="toggleLayoutCustomMode(false)" class="flex-1 px-3 py-2 bg-green-600/80 hover:bg-green-600 text-white rounded-xl text-[9px] font-black tracking-wider uppercase active:scale-95 transition-all">SAVE</button>
+        </div>
+    </div>
+
     <div id="gameTitleTop" class="absolute top-[12%] sm:top-12 w-full text-center z-0 pointer-events-none hidden px-4 opacity-0 md:opacity-30">
         <div class="text-[12vw] sm:text-8xl mb-1 font-black pixel-font tracking-tighter bg-white/20 text-transparent bg-clip-text whitespace-nowrap">CALANGO RUN</div>
     </div>
 
-    <div id="hudHUD" class="absolute top-3 left-3 right-3 md:top-10 md:left-12 md:right-12 z-20 hidden flex flex-row justify-between items-start pointer-events-none">
-        <div class="flex flex-col gap-1 md:gap-2 pointer-events-auto scale-[0.7] md:scale-100 origin-top-left">
-            <!-- Vidas Premium -->
-            <div id="lifeHUD" class="hud-panel flex items-center gap-2 border-red-500/20 shadow-[0_4px_20px_rgba(239,68,68,0.1)]">
-                <div id="heartsContainer" class="flex gap-1 items-center"></div>
-            </div>
+    <div id="hudHUD" class="absolute inset-0 z-20 hidden pointer-events-none">
+        <!-- Vidas Premium -->
+        <div id="lifeHUD" class="hud-panel flex items-center gap-2 border-red-500/20 shadow-[0_4px_20px_rgba(239,68,68,0.1)] absolute top-3 left-3 md:top-10 md:left-12 pointer-events-auto scale-90 md:scale-100 origin-top-left transition-shadow duration-300">
+            <div id="heartsContainer" class="flex gap-1 items-center"></div>
+        </div>
+        
+        <!-- Outros HUDs (Ocultos no Mobile por padrão) -->
+        <div class="absolute top-16 left-3 md:top-24 md:left-12 flex flex-col gap-1 md:gap-2 pointer-events-none">
             <!-- Missão e XP - OCULTOS NO MOBILE -->
-            <div id="missionHUD" class="hud-panel hidden md:flex flex-col gap-1 border-orange-500/20">
+            <div id="missionHUD" class="hud-panel hidden md:flex flex-col gap-1 border-orange-500/20 pointer-events-auto">
                 <span class="text-[8px] text-orange-400 font-bold uppercase tracking-widest opacity-80" t="objective">OBJECTIVE</span>
                 <span id="txtMission" class="text-[10px] text-white font-black tracking-tight uppercase">Jump 30x</span>
                 <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-1">
                     <div id="barMission" class="h-full bg-orange-500 w-0 shadow-[0_0_10px_#f97316]"></div>
                 </div>
             </div>
-            <div id="xpHUD" class="hud-panel hidden md:flex flex-col gap-1 border-green-500/20">
+            <div id="xpHUD" class="hud-panel hidden md:flex flex-col gap-1 border-green-500/20 pointer-events-auto">
                 <div class="flex justify-between items-center">
                     <span class="text-[8px] text-green-400 font-bold uppercase tracking-widest opacity-80"><span t="level">LEVEL</span> <span id="txtLevel">1</span></span>
                     <span id="txtXPProgress" class="text-[7px] text-white/50 font-medium tracking-tighter">0/1000</span>
@@ -183,23 +259,21 @@
                     <div id="barXP" class="h-full bg-green-500 w-0 shadow-[0_0_10px_#22c55e]"></div>
                 </div>
             </div>
-        </div>
-
-        <div class="flex flex-col items-end gap-1 md:gap-2 pointer-events-auto scale-[0.65] md:scale-100 origin-top-right">
-            <!-- HUD de Score Premium -->
-            <div id="scoreHUD" class="hud-panel flex flex-col items-end gap-0 border-white/10 shadow-[0_4px_30px_rgba(255,255,255,0.05)] min-w-[100px]">
-                <span class="text-[8px] text-white/40 font-bold uppercase tracking-widest" t="points">SCORE</span>
-                <span id="txtScore" class="text-white font-black text-2xl md:text-3xl drop-shadow-glow">00000</span>
-            </div>
-            <!-- HUD de Moedas Premium -->
-            <div id="coinHUD" class="hud-panel flex items-center gap-3 border-yellow-500/20 shadow-[0_4px_30px_rgba(234,179,8,0.15)] active:scale-95 transition-all cursor-pointer">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-300 border-2 border-yellow-100/50 flex items-center justify-center text-yellow-900 font-bold text-sm shadow-[0_0_15px_rgba(234,179,8,0.5)] animate-pulse">C</div>
-                <span id="txtCoins" class="text-white font-black text-xl md:text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">0</span>
-            </div>
             <!-- Combo HUD -->
-            <div id="comboHUD" class="hidden premium-card px-3 py-1 items-center justify-center border-orange-500/30">
+            <div id="comboHUD" class="hidden premium-card px-3 py-1 items-center justify-center border-orange-500/30 pointer-events-auto">
                 <span id="txtCombo" class="text-orange-400 font-black text-sm pixel-font glitch-text">x1.5</span>
             </div>
+        </div>
+
+        <!-- HUD de Score Premium -->
+        <div id="scoreHUD" class="hud-panel flex flex-col items-end gap-0 border-white/10 shadow-[0_4px_30px_rgba(255,255,255,0.05)] min-w-[100px] absolute top-3 right-3 md:top-10 md:right-12 pointer-events-auto scale-90 md:scale-100 origin-top-right transition-shadow duration-300">
+            <span class="text-[8px] text-white/40 font-bold uppercase tracking-widest" t="points">SCORE</span>
+            <span id="txtScore" class="text-white font-black text-2xl md:text-3xl drop-shadow-glow">00000</span>
+        </div>
+        <!-- HUD de Moedas Premium -->
+        <div id="coinHUD" class="hud-panel flex items-center gap-3 border-yellow-500/20 shadow-[0_4px_30px_rgba(234,179,8,0.15)] active:scale-95 transition-all cursor-pointer absolute top-16 right-3 md:top-24 md:right-12 pointer-events-auto scale-90 md:scale-100 origin-top-right transition-shadow duration-300">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-300 border-2 border-yellow-100/50 flex items-center justify-center text-yellow-900 font-bold text-sm shadow-[0_0_15px_rgba(234,179,8,0.5)] animate-pulse">C</div>
+            <span id="txtCoins" class="text-white font-black text-xl md:text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">0</span>
         </div>
     </div>
 
@@ -284,7 +358,8 @@
             <div class="flex flex-col items-center gap-2 shrink-0">
                 <div class="flex flex-col gap-2 w-full max-w-[280px]">
                     <button id="btnLang" onclick="toggleLanguage()" class="w-full h-10 bg-slate-800/80 hover:bg-slate-700 text-white font-bold rounded-xl border-b-4 border-slate-900 transition-all active:translate-y-1 active:border-b-0 flex items-center justify-center gap-2">🇺🇸 EN</button>
-                    <p class="text-[8px] text-slate-500 uppercase tracking-widest text-center mt-2">By playing you agree to our <br> Privacy Policy & Terms of Service</p>
+                    <button onclick="toggleLayoutCustomMode(true)" class="w-full h-10 bg-blue-600/80 hover:bg-blue-500 text-white font-bold rounded-xl border-b-4 border-blue-900 transition-all active:translate-y-1 active:border-b-0 flex items-center justify-center gap-2" t="customize_ui">⚙️ CUSTOMIZE UI</button>
+                    <p class="text-[8px] text-slate-500 uppercase tracking-widest text-center mt-1">By playing you agree to our <br> Privacy Policy & Terms of Service</p>
                 </div>
             </div>
         </div>
@@ -299,6 +374,15 @@
                 <div class="premium-card px-4 py-2 flex items-center gap-2 border-yellow-500/30">
                     <div class="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-600 flex items-center justify-center text-yellow-900 text-[10px] font-bold">C</div>
                     <span id="shopCoins" class="text-white font-black text-xl">0</span>
+                </div>
+            </div>
+            
+            <!-- Live Character Preview Area -->
+            <div class="w-full max-w-lg mb-4 flex flex-col items-center justify-center premium-card p-4 border-yellow-500/20 bg-black/40 shadow-inner">
+                <span class="text-[8px] text-yellow-400 font-bold uppercase tracking-widest mb-2">LIVE CHARACTER PREVIEW</span>
+                <div class="relative w-48 h-32 bg-slate-950/60 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">
+                    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:10px_10px]"></div>
+                    <canvas id="shopPreviewCanvas" width="180" height="110" class="relative z-10"></canvas>
                 </div>
             </div>
             
@@ -371,20 +455,19 @@
             </div>
         </div>
 
-    <div id="mobileControls" class="mobile-controls absolute bottom-6 w-full px-4 flex justify-between z-[100] items-end pointer-events-none hidden" style="padding-bottom: env(safe-area-inset-bottom);">
-        <!-- Lado Esquerdo: Movimento e Especiais -->
-        <div class="flex flex-col gap-2 pointer-events-auto scale-90 origin-bottom-left">
-            <div class="flex gap-2">
-                <button id="btnHook" class="w-14 h-14 bg-white/5 text-amber-400 rounded-full font-black border border-amber-500/20 shadow-xl backdrop-blur-sm flex items-center justify-center text-lg pointer-events-auto">👅</button>
-                <button id="btnFocus" class="w-14 h-14 bg-white/5 text-orange-400 rounded-full font-black border border-orange-500/20 shadow-xl backdrop-blur-sm flex items-center justify-center text-lg pointer-events-auto">👁️</button>
-            </div>
-            <div class="flex gap-2">
-                <button id="btnLeft" class="w-16 h-14 bg-white/10 text-white rounded-xl font-black border border-white/10 shadow-xl flex items-center justify-center text-xl pointer-events-auto">&lt;</button>
-                <button id="btnRight" class="w-16 h-14 bg-white/10 text-white rounded-xl font-black border border-white/10 shadow-xl flex items-center justify-center text-xl pointer-events-auto">&gt;</button>
-            </div>
+    <div id="mobileControls" class="mobile-controls absolute inset-0 w-full h-full pointer-events-none hidden z-[100]">
+        <!-- Movimentos (Seta Esquerda e Direita) -->
+        <div id="mobileMoves" class="absolute bottom-6 left-6 flex gap-2 pointer-events-auto scale-95 origin-bottom-left transition-shadow duration-300" style="padding-bottom: env(safe-area-inset-bottom);">
+            <button id="btnLeft" class="w-16 h-14 bg-white/10 text-white rounded-xl font-black border border-white/10 shadow-xl flex items-center justify-center text-xl pointer-events-auto">&lt;</button>
+            <button id="btnRight" class="w-16 h-14 bg-white/10 text-white rounded-xl font-black border border-white/10 shadow-xl flex items-center justify-center text-xl pointer-events-auto">&gt;</button>
         </div>
-        <!-- Lado Direito: Ações Principais -->
-        <div class="flex flex-col gap-2 pointer-events-auto scale-100 origin-bottom-right">
+        <!-- Especiais (Língua e Instinto) -->
+        <div id="mobileSpecials" class="absolute bottom-6 right-36 flex gap-2 pointer-events-auto scale-95 origin-bottom-right transition-shadow duration-300" style="padding-bottom: env(safe-area-inset-bottom);">
+            <button id="btnHook" class="w-14 h-14 bg-white/5 text-amber-400 rounded-full font-black border border-amber-500/20 shadow-xl backdrop-blur-sm flex items-center justify-center text-lg pointer-events-auto">👅</button>
+            <button id="btnFocus" class="w-14 h-14 bg-white/5 text-orange-400 rounded-full font-black border border-orange-500/20 shadow-xl backdrop-blur-sm flex items-center justify-center text-lg pointer-events-auto">👁️</button>
+        </div>
+        <!-- Ações Principais (Pulo e Deslize) -->
+        <div id="mobileActions" class="absolute bottom-6 right-6 flex flex-col gap-2 pointer-events-auto scale-100 origin-bottom-right transition-shadow duration-300" style="padding-bottom: env(safe-area-inset-bottom);">
             <button id="btnJump" class="w-24 h-20 bg-green-600/20 text-green-400 rounded-2xl text-[10px] font-black border border-green-500/30 shadow-2xl backdrop-blur-md active:bg-green-600 active:text-white transition-all uppercase px-2 pointer-events-auto" t="jump_btn">JUMP</button>
             <button id="btnDuck" class="w-24 h-16 bg-white/10 text-white rounded-xl text-[10px] font-black border border-white/10 shadow-xl active:bg-yellow-500 active:text-black transition-all uppercase px-2 pointer-events-auto" t="slide_btn">SLIDE</button>
         </div>
@@ -812,17 +895,273 @@
         }
 
         // ==========================================
+        // UI DA LOJ        // ==========================================
         // UI DA LOJA
         // ==========================================
+        let shopPreviewCanvas = null;
+        let shopPreviewCtx = null;
+        let shopPreviewAnimId = null;
+        let shopPreviewFrame = 0;
+        let previewSkin = null;
+        let previewHat = null;
+        let previewEffect = null;
+
+        function initShopPreview() {
+            shopPreviewCanvas = document.getElementById('shopPreviewCanvas');
+            if (shopPreviewCanvas) {
+                shopPreviewCtx = shopPreviewCanvas.getContext('2d');
+            }
+        }
+
+        function drawShopPreview() {
+            if (!shopPreviewCtx || !shopPreviewCanvas) return;
+            const w = shopPreviewCanvas.width;
+            const h = shopPreviewCanvas.height;
+            shopPreviewCtx.clearRect(0, 0, w, h);
+            
+            shopPreviewFrame++;
+            
+            shopPreviewCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            shopPreviewCtx.lineWidth = 2;
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.moveTo(10, h - 25);
+            shopPreviewCtx.lineTo(w - 10, h - 25);
+            shopPreviewCtx.stroke();
+            
+            const pX = w / 2;
+            const pY = h - 25;
+            
+            const currentSkinId = previewSkin || gameData.eqSkin;
+            const currentHatId = previewHat || gameData.eqHat;
+            const currentEffectId = previewEffect || gameData.eqEffect;
+            
+            const skinItem = shopItems.skins.find(s => s.id === currentSkinId) || shopItems.skins[0];
+            const hatItem = shopItems.hats.find(h => h.id === currentHatId);
+            const effectItem = shopItems.effects.find(e => e.id === currentEffectId);
+            
+            const bobbing = Math.sin(shopPreviewFrame * 0.15) * 2;
+            const tailSwing = Math.sin(shopPreviewFrame * 0.1) * 0.15;
+            
+            if (effectItem && effectItem.id !== 'eff_default') {
+                const effColor = effectItem.color;
+                shopPreviewCtx.save();
+                shopPreviewCtx.shadowBlur = 10;
+                shopPreviewCtx.shadowColor = effColor;
+                shopPreviewCtx.fillStyle = effColor;
+                for (let i = 0; i < 5; i++) {
+                    const alpha = (5 - i) / 5;
+                    const px = pX - 30 - i * 12 + Math.sin(shopPreviewFrame * 0.2 + i) * 3;
+                    const py = pY - 20 + bobbing + Math.cos(shopPreviewFrame * 0.2 + i) * 3;
+                    shopPreviewCtx.globalAlpha = alpha * 0.4;
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.arc(px, py, 6 - i, 0, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                }
+                shopPreviewCtx.restore();
+            }
+            
+            shopPreviewCtx.save();
+            shopPreviewCtx.translate(pX, pY + bobbing);
+            
+            // Tail
+            shopPreviewCtx.fillStyle = skinItem.color;
+            shopPreviewCtx.save();
+            shopPreviewCtx.translate(-15, -12);
+            shopPreviewCtx.rotate(tailSwing - 0.2);
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(-15, 0, 15, 4, 0, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            shopPreviewCtx.fillStyle = '#1e293b';
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(-26, -1, 6, 2, 0.1, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            shopPreviewCtx.restore();
+            
+            // Back Leg
+            shopPreviewCtx.fillStyle = skinItem.color;
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(-10, -3, 6, 8, 0.2, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            
+            // Front Leg
+            shopPreviewCtx.fillStyle = skinItem.color;
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(10, -3, 6, 8, -0.2, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            
+            // Body
+            const bodyGrad = shopPreviewCtx.createLinearGradient(-15, -25, 15, -5);
+            bodyGrad.addColorStop(0, skinItem.color);
+            bodyGrad.addColorStop(1, '#0f172a');
+            shopPreviewCtx.fillStyle = bodyGrad;
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(0, -15, 20, 12, 0, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            
+            // Head
+            shopPreviewCtx.fillStyle = skinItem.color;
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(18, -20, 10, 8, 0.1, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            
+            // Flap
+            shopPreviewCtx.fillStyle = '#ef4444';
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.ellipse(15, -14, 6, 5, -0.2, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            
+            // Eye
+            shopPreviewCtx.fillStyle = '#ffffff';
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.arc(20, -22, 2.5, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            shopPreviewCtx.fillStyle = '#000000';
+            shopPreviewCtx.beginPath();
+            shopPreviewCtx.arc(21, -22, 1.2, 0, Math.PI * 2);
+            shopPreviewCtx.fill();
+            
+            if (hatItem && hatItem.id !== 'hat_none') {
+                shopPreviewCtx.save();
+                shopPreviewCtx.translate(18, -22);
+                
+                if (hatItem.id === 'hat_faixa') {
+                    shopPreviewCtx.fillStyle = '#ef4444';
+                    shopPreviewCtx.fillRect(-8, -4, 14, 3);
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.moveTo(-8, -2);
+                    shopPreviewCtx.lineTo(-14, 2);
+                    shopPreviewCtx.lineTo(-12, 5);
+                    shopPreviewCtx.closePath();
+                    shopPreviewCtx.fill();
+                } else if (hatItem.id === 'hat_flor') {
+                    shopPreviewCtx.fillStyle = '#f472b6';
+                    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 3) {
+                        const px = Math.sin(angle) * 5;
+                        const py = Math.cos(angle) * 5 - 4;
+                        shopPreviewCtx.beginPath();
+                        shopPreviewCtx.arc(px, py, 3, 0, Math.PI * 2);
+                        shopPreviewCtx.fill();
+                    }
+                    shopPreviewCtx.fillStyle = '#fef08a';
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.arc(0, -4, 3.5, 0, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                } else if (hatItem.id === 'hat_oculos') {
+                    shopPreviewCtx.fillStyle = '#1e293b';
+                    shopPreviewCtx.fillRect(-2, -2, 7, 4);
+                    shopPreviewCtx.fillStyle = '#000000';
+                    shopPreviewCtx.fillRect(1, -1, 3, 2);
+                    shopPreviewCtx.strokeStyle = '#ffffff';
+                    shopPreviewCtx.lineWidth = 0.5;
+                    shopPreviewCtx.strokeRect(-2, -2, 7, 4);
+                } else if (hatItem.id === 'hat_bone') {
+                    shopPreviewCtx.fillStyle = '#ef4444';
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.ellipse(0, -5, 7, 5, 0, Math.PI, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                    shopPreviewCtx.fillStyle = '#b91c1c';
+                    shopPreviewCtx.fillRect(3, -5, 8, 2);
+                } else if (hatItem.id === 'hat_cangaceiro') {
+                    shopPreviewCtx.fillStyle = '#78350f';
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.ellipse(0, -5, 12, 4, 0.05, 0, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.ellipse(0, -8, 7, 6, 0.05, Math.PI, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                    shopPreviewCtx.fillStyle = '#ffffff';
+                    shopPreviewCtx.fillRect(-3, -7, 1.5, 1.5);
+                    shopPreviewCtx.fillRect(2, -7, 1.5, 1.5);
+                } else if (hatItem.id === 'hat_sombrero') {
+                    shopPreviewCtx.fillStyle = '#d97706';
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.ellipse(0, -4, 15, 3, 0, 0, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.ellipse(0, -9, 8, 7, 0, Math.PI, Math.PI * 2);
+                    shopPreviewCtx.fill();
+                } else if (hatItem.id === 'hat_coroa') {
+                    shopPreviewCtx.fillStyle = '#fbbf24';
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.moveTo(-6, -3);
+                    shopPreviewCtx.lineTo(-8, -10);
+                    shopPreviewCtx.lineTo(-4, -6);
+                    shopPreviewCtx.lineTo(0, -12);
+                    shopPreviewCtx.lineTo(4, -6);
+                    shopPreviewCtx.lineTo(8, -10);
+                    shopPreviewCtx.lineTo(6, -3);
+                    shopPreviewCtx.closePath();
+                    shopPreviewCtx.fill();
+                } else if (hatItem.id === 'hat_chifres') {
+                    shopPreviewCtx.strokeStyle = '#e2e8f0';
+                    shopPreviewCtx.lineWidth = 2;
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.moveTo(-3, -4);
+                    shopPreviewCtx.quadraticCurveTo(-10, -15, -15, -12);
+                    shopPreviewCtx.stroke();
+                    shopPreviewCtx.beginPath();
+                    shopPreviewCtx.moveTo(1, -4);
+                    shopPreviewCtx.quadraticCurveTo(-3, -17, -8, -15);
+                    shopPreviewCtx.stroke();
+                } else if (hatItem.id === 'hat_cartola') {
+                    shopPreviewCtx.fillStyle = '#1e1b4b';
+                    shopPreviewCtx.fillRect(-5, -12, 10, 8);
+                    shopPreviewCtx.fillStyle = '#0f0b29';
+                    shopPreviewCtx.fillRect(-8, -4, 16, 2.5);
+                    shopPreviewCtx.fillStyle = '#fbbf24';
+                    shopPreviewCtx.fillRect(-5, -6, 10, 2);
+                }
+                
+                shopPreviewCtx.restore();
+            }
+            
+            shopPreviewCtx.restore();
+        }
+
+        function startShopPreviewLoop() {
+            if (shopPreviewAnimId) cancelAnimationFrame(shopPreviewAnimId);
+            initShopPreview();
+            previewSkin = gameData.eqSkin;
+            previewHat = gameData.eqHat;
+            previewEffect = gameData.eqEffect;
+            
+            function loop() {
+                drawShopPreview();
+                shopPreviewAnimId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function stopShopPreviewLoop() {
+            if (shopPreviewAnimId) {
+                cancelAnimationFrame(shopPreviewAnimId);
+                shopPreviewAnimId = null;
+            }
+        }
+
+        function hoverShopItem(id, type) {
+            if (type === 'skin') previewSkin = id;
+            if (type === 'hat') previewHat = id;
+            if (type === 'effect') previewEffect = id;
+        }
+
+        function hoverShopItemReset() {
+            previewSkin = gameData.eqSkin;
+            previewHat = gameData.eqHat;
+            previewEffect = gameData.eqEffect;
+        }
+
         function openShop() {
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('shopScreen').classList.remove('hidden');
             renderShop();
+            startShopPreviewLoop();
         }
 
         function closeShop() {
             document.getElementById('shopScreen').classList.add('hidden');
             document.getElementById('startScreen').classList.remove('hidden');
+            stopShopPreviewLoop();
             saveData();
         }
 
@@ -842,7 +1181,6 @@
                     btnHtml = `<button onclick="buyItem('${item.id}', ${item.price})" class="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs rounded-xl flex justify-center items-center gap-2 shadow-2xl transition-all active:scale-95 btn-gold-pulse uppercase tracking-tight"><span class="w-4 h-4 rounded-full bg-yellow-600 border border-yellow-800 inline-block text-[8px] leading-[14px] text-center text-white">C</span>${item.price}</button>`;
                 }
 
-                // Visual dinâmico por tipo
                 let visualPreview = '';
                 if (type === 'skin') {
                     visualPreview = `
@@ -867,7 +1205,7 @@
                 }
 
                 return `
-                    <div class="premium-card p-6 flex flex-col items-center gap-5 transition-all hover:scale-[1.05] shop-item ${isEquipped ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-black' : ''} ${!isUnlocked ? 'opacity-85' : ''}">
+                    <div class="premium-card p-6 flex flex-col items-center gap-5 transition-all hover:scale-[1.05] shop-item ${isEquipped ? 'ring-2 ring-green-500 ring-offset-4 ring-offset-black' : ''} ${!isUnlocked ? 'opacity-85' : ''}" onmouseenter="hoverShopItem('${item.id}', '${type}')" onmouseleave="hoverShopItemReset()">
                         <div class="h-24 flex items-center justify-center bg-black/40 w-full rounded-2xl border border-white/10 shadow-inner">
                             ${visualPreview}
                         </div>
@@ -883,7 +1221,6 @@
             document.getElementById('shopHats').innerHTML = shopItems.hats.map(i => renderItem(i, 'hat')).join('');
             document.getElementById('shopEffects').innerHTML = shopItems.effects.map(i => renderItem(i, 'effect')).join('');
             
-            // Render Upgrades Tab (Appended to Effects container for layout simplicity, or its own if available)
             if(!document.getElementById('shopUpgradesText')) {
                 const titleUpg = document.createElement('h3');
                 titleUpg.id = 'shopUpgradesText'; titleUpg.className = 'text-center font-black pixel-text text-acid mt-8 mb-4'; titleUpg.innerText = 'MELHORIAS';
@@ -946,6 +1283,11 @@
             if (type === 'skin') gameData.eqSkin = id;
             if (type === 'hat') gameData.eqHat = id;
             if (type === 'effect') gameData.eqEffect = id;
+            
+            previewSkin = gameData.eqSkin;
+            previewHat = gameData.eqHat;
+            previewEffect = gameData.eqEffect;
+            
             saveData();
             renderShop();
             AudioEngine.playSFXJump(); 
@@ -1246,32 +1588,84 @@
                 ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI); ctx.fill();
             }
         }
-
         // ==========================================
         // CHEFÃO (BOSS)
         // ==========================================
         class Boss {
             constructor(stage) {
                 this.stage = stage;
+                const bossIndex = ((stage - 1) % 8) + 1;
+                this.bossIndex = bossIndex;
                 this.maxHp = 2 + stage; 
                 this.hp = this.maxHp;
+                
                 this.w = 90;
                 this.h = 60;
                 this.x = canvas.width + 100;
-                this.y = GROUND_Y - 150;
-                this.baseY = this.y;
+                
+                if (bossIndex === 4 || bossIndex === 6 || bossIndex === 7 || bossIndex === 8) {
+                    this.y = GROUND_Y - 80;
+                    this.baseY = GROUND_Y - 80;
+                } else {
+                    this.y = GROUND_Y - 170;
+                    this.baseY = GROUND_Y - 170;
+                }
+                
                 this.state = 'enter'; 
                 this.timer = 0;
                 this.anim = 0;
-                this.title = stage === 1 ? "CARCARÁ DO SERTÃO" : (stage === 2 ? "GAVIÃO REAL" : "REI DA CAATINGA");
                 
-                this.color = stage === 1 ? '#451a03' : (stage === 2 ? '#166534' : '#064e3b'); 
-                this.wingColor = stage === 1 ? '#1e1b4b' : (stage === 2 ? '#022c22' : '#042f2e');
-                this.eyeColor = '#ef4444';
+                switch (bossIndex) {
+                    case 1:
+                        this.title = "CARCARÁ DO SERTÃO";
+                        this.color = '#78350f';
+                        this.wingColor = '#1e1b4b';
+                        this.eyeColor = '#ef4444';
+                        break;
+                    case 2:
+                        this.title = "GAVIÃO REAL";
+                        this.color = '#475569';
+                        this.wingColor = '#0f172a';
+                        this.eyeColor = '#ffffff';
+                        break;
+                    case 3:
+                        this.title = "REI DA CAATINGA";
+                        this.color = '#0d9488';
+                        this.wingColor = '#115e59';
+                        this.eyeColor = '#facc15';
+                        break;
+                    case 4:
+                        this.title = "COBRA CORAL";
+                        this.color = '#ef4444';
+                        this.eyeColor = '#facc15';
+                        break;
+                    case 5:
+                        this.title = "TAMANDUÁ BANDEIRA";
+                        this.color = '#52525b';
+                        this.eyeColor = '#000000';
+                        break;
+                    case 6:
+                        this.title = "TATÚ BOLA GIGANTE";
+                        this.color = '#b45309';
+                        this.eyeColor = '#ef4444';
+                        break;
+                    case 7:
+                        this.title = "SAPO CURURU GIGANTE";
+                        this.color = '#15803d';
+                        this.eyeColor = '#fbbf24';
+                        break;
+                    case 8:
+                        this.title = "ONÇA PINTADA GIGANTE";
+                        this.color = '#f97316';
+                        this.eyeColor = '#000000';
+                        break;
+                }
             }
 
             update() {
                 this.anim += 1 * timeScale;
+                const bossIndex = this.bossIndex;
+                
                 if (this.state === 'enter') {
                     this.x -= 3 * timeScale;
                     if (this.x <= canvas.width - 120) {
@@ -1280,7 +1674,14 @@
                         this.timer = Math.max(40, 80 - (this.stage * 10));
                     }
                 } else if (this.state === 'idle') {
-                    this.y = this.baseY + Math.sin(this.anim * 0.1) * 30; 
+                    if (bossIndex === 7) {
+                        this.y = this.baseY - Math.abs(Math.sin(this.anim * 0.08)) * 30;
+                    } else if (bossIndex === 4) {
+                        this.y = this.baseY + Math.sin(this.anim * 0.12) * 5;
+                    } else {
+                        this.y = this.baseY + Math.sin(this.anim * 0.1) * 15; 
+                    }
+                    
                     this.timer -= 1 * timeScale;
                     if (this.timer <= 0) {
                         this.state = 'warn';
@@ -1289,8 +1690,11 @@
                     }
                 } else if (this.state === 'warn') {
                     this.timer -= 1 * timeScale;
-                    // Desce gradualmente para preparar o bote
-                    this.y += ( (GROUND_Y - 50) - this.y) * 0.1 * timeScale;
+                    if (bossIndex === 4 || bossIndex === 6 || bossIndex === 7 || bossIndex === 8) {
+                        this.y += ( (GROUND_Y - 60) - this.y) * 0.1 * timeScale;
+                    } else {
+                        this.y += ( (GROUND_Y - 50) - this.y) * 0.1 * timeScale;
+                    }
                     if (this.timer <= 0) {
                         this.state = 'attack';
                         this.timer = 60;
@@ -1298,15 +1702,19 @@
                     }
                 } else if (this.state === 'attack') {
                     this.x -= 15 * timeScale;
-                    // Mantém altura baixa para atingir o player
-                    this.y = GROUND_Y - 50;
+                    if (bossIndex === 7) {
+                        this.y = GROUND_Y - 50 - Math.abs(Math.sin(this.timer * 0.05)) * 120;
+                    } else if (bossIndex === 4 || bossIndex === 6 || bossIndex === 8) {
+                        this.y = GROUND_Y - 55;
+                    } else {
+                        this.y = GROUND_Y - 50;
+                    }
                     if (this.x < -100) {
                         this.state = 'return';
                         this.x = canvas.width + 100;
                     }
                 } else if (this.state === 'return') {
                     this.x -= 5 * timeScale;
-                    // Sobe de volta para a altura base
                     this.y += (this.baseY - this.y) * 0.05 * timeScale;
                     if (this.x <= canvas.width - 120) {
                         this.x = canvas.width - 120;
@@ -1329,148 +1737,377 @@
                     ctx.fillText('!', -10, -35);
                 }
 
-                let wingAngle = Math.sin(this.anim * 0.4) * (Math.PI / 3);
                 if (this.state === 'hurt' && frames % 4 < 2) ctx.globalAlpha = 0.5;
 
-                ctx.scale(2.2, 2.2); // Volumetric increase for boss presence
+                ctx.scale(2.2, 2.2);
 
-                // 1. Tail Feathers (volumetric color ramp depending on stage)
-                let tailGrad = ctx.createLinearGradient(0, 0, 20, 5);
-                if (this.stage === 1) {
-                    tailGrad.addColorStop(0, '#451a03'); tailGrad.addColorStop(1, '#1a0800');
-                } else if (this.stage === 2) {
-                    tailGrad.addColorStop(0, '#1e293b'); tailGrad.addColorStop(1, '#0f172a');
-                } else {
-                    tailGrad.addColorStop(0, '#042f2e'); tailGrad.addColorStop(1, '#115e59');
-                }
-                ctx.fillStyle = tailGrad;
-                ctx.beginPath();
-                ctx.moveTo(10, 0);
-                ctx.lineTo(25, -10);
-                ctx.lineTo(28, 0);
-                ctx.lineTo(25, 10);
-                ctx.lineTo(10, 4);
-                ctx.closePath();
-                ctx.fill();
+                const bossIndex = this.bossIndex;
 
-                // 2. Back Wing (lower depth layer)
-                ctx.fillStyle = this.stage === 1 ? '#1a0800' : (this.stage === 2 ? '#0f172a' : '#0f766e');
-                ctx.save();
-                ctx.rotate(wingAngle * 0.6);
-                ctx.beginPath();
-                ctx.ellipse(0, -6, 14, 7, -Math.PI / 4, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+                if (bossIndex === 1 || bossIndex === 2 || bossIndex === 3) {
+                    let wingAngle = Math.sin(this.anim * 0.4) * (Math.PI / 3);
 
-                // 3. Body (Volumetric 3D gradient)
-                let bodyGrad = ctx.createLinearGradient(-18, -6, 18, 6);
-                if (this.stage === 1) {
-                    bodyGrad.addColorStop(0, '#78350f'); // rich brown
-                    bodyGrad.addColorStop(1, '#451a03');
-                } else if (this.stage === 2) {
-                    bodyGrad.addColorStop(0, '#f8fafc'); // white breast feathers
-                    bodyGrad.addColorStop(0.4, '#475569'); // slate gray body
-                    bodyGrad.addColorStop(1, '#1e293b');
-                } else {
-                    bodyGrad.addColorStop(0, '#facc15'); // golden king breast
-                    bodyGrad.addColorStop(0.4, '#0d9488'); // teal king body
-                    bodyGrad.addColorStop(1, '#115e59');
-                }
-                ctx.fillStyle = bodyGrad;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 20, 11, 0, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 4. Head
-                ctx.fillStyle = this.stage === 1 ? '#451a03' : (this.stage === 2 ? '#334155' : '#0d9488');
-                ctx.beginPath();
-                ctx.arc(-17, -5, 8.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Stage Specific Head Accoutrements
-                if (this.stage === 2) {
-                    // Double feather crest for Harpy Eagle (Gavião Real)
-                    ctx.fillStyle = '#1e293b';
+                    let tailGrad = ctx.createLinearGradient(0, 0, 20, 5);
+                    if (bossIndex === 1) {
+                        tailGrad.addColorStop(0, '#451a03'); tailGrad.addColorStop(1, '#1a0800');
+                    } else if (bossIndex === 2) {
+                        tailGrad.addColorStop(0, '#1e293b'); tailGrad.addColorStop(1, '#0f172a');
+                    } else {
+                        tailGrad.addColorStop(0, '#042f2e'); tailGrad.addColorStop(1, '#115e59');
+                    }
+                    ctx.fillStyle = tailGrad;
                     ctx.beginPath();
-                    ctx.moveTo(-17, -13.5); ctx.lineTo(-14, -19); ctx.lineTo(-20, -13.5);
-                    ctx.moveTo(-20, -12); ctx.lineTo(-22, -17); ctx.lineTo(-23, -11);
+                    ctx.moveTo(10, 0); ctx.lineTo(25, -10); ctx.lineTo(28, 0); ctx.lineTo(25, 10); ctx.lineTo(10, 4);
+                    ctx.closePath(); ctx.fill();
+
+                    ctx.fillStyle = bossIndex === 1 ? '#1a0800' : (bossIndex === 2 ? '#0f172a' : '#0f766e');
+                    ctx.save();
+                    ctx.rotate(wingAngle * 0.6);
+                    ctx.beginPath();
+                    ctx.ellipse(0, -6, 14, 7, -Math.PI / 4, 0, Math.PI * 2);
                     ctx.fill();
-                } else if (this.stage === 3) {
-                    // Crown for King of the Caatinga (Rei da Caatinga)
-                    ctx.fillStyle = '#fbbf24'; 
-                    ctx.strokeStyle = '#d97706';
-                    ctx.lineWidth = 1;
+                    ctx.restore();
+
+                    let bodyGrad = ctx.createLinearGradient(-18, -6, 18, 6);
+                    if (bossIndex === 1) {
+                        bodyGrad.addColorStop(0, '#78350f');
+                        bodyGrad.addColorStop(1, '#451a03');
+                    } else if (bossIndex === 2) {
+                        bodyGrad.addColorStop(0, '#f8fafc');
+                        bodyGrad.addColorStop(0.4, '#475569');
+                        bodyGrad.addColorStop(1, '#1e293b');
+                    } else {
+                        bodyGrad.addColorStop(0, '#facc15');
+                        bodyGrad.addColorStop(0.4, '#0d9488');
+                        bodyGrad.addColorStop(1, '#115e59');
+                    }
+                    ctx.fillStyle = bodyGrad;
                     ctx.beginPath();
-                    ctx.moveTo(-22, -13);
-                    ctx.lineTo(-24, -18);
-                    ctx.lineTo(-20, -15);
-                    ctx.lineTo(-17, -20);
-                    ctx.lineTo(-14, -15);
-                    ctx.lineTo(-10, -18);
-                    ctx.lineTo(-12, -13);
-                    ctx.closePath();
-                    ctx.fill(); ctx.stroke();
-                }
+                    ctx.ellipse(0, 0, 20, 11, 0, 0, Math.PI * 2);
+                    ctx.fill();
 
-                // 5. Beak (Shaded hooked predatory beak)
-                let beakGrad = ctx.createLinearGradient(-17, -5, -29, -2);
-                beakGrad.addColorStop(0, '#facc15');
-                beakGrad.addColorStop(1, '#d97706');
-                ctx.fillStyle = beakGrad;
-                ctx.beginPath();
-                ctx.moveTo(-17, -8);
-                ctx.quadraticCurveTo(-27, -7, -29, -1); 
-                ctx.quadraticCurveTo(-23, 3, -17, 2);
-                ctx.closePath();
-                ctx.fill();
-
-                // 6. Eye (Glowing predatory pupil and stern brow)
-                ctx.fillStyle = this.stage === 3 ? '#f43f5e' : '#ef4444';
-                ctx.beginPath();
-                ctx.arc(-19, -6, 2, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(-23, -9); ctx.lineTo(-15, -8);
-                ctx.stroke();
-
-                // 7. Front Wing (top layer with feather lines)
-                ctx.fillStyle = this.stage === 1 ? '#78350f' : (this.stage === 2 ? '#64748b' : '#14b8a6');
-                ctx.save();
-                ctx.rotate(-wingAngle);
-                ctx.beginPath();
-                ctx.moveTo(5, 2);
-                ctx.quadraticCurveTo(10, -22, 22, -28);
-                ctx.quadraticCurveTo(16, -14, 11, -5);
-                ctx.quadraticCurveTo(2, 0, -5, 2);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Highlight lines
-                ctx.strokeStyle = this.stage === 3 ? '#99f6e4' : 'rgba(255,255,255,0.2)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(9, -9); ctx.lineTo(15, -18);
-                ctx.moveTo(12, -4); ctx.lineTo(18, -10);
-                ctx.stroke();
-
-                // Cyber-organic neon wing trails for Stage 3 (Rei da Caatinga)
-                if (this.stage === 3) {
-                    ctx.strokeStyle = 'rgba(20, 184, 166, 0.4)';
-                    ctx.lineWidth = 2.5;
+                    ctx.fillStyle = bossIndex === 1 ? '#451a03' : (bossIndex === 2 ? '#334155' : '#0d9488');
                     ctx.beginPath();
-                    ctx.moveTo(22, -28);
-                    ctx.quadraticCurveTo(35, -28 - (wingAngle * 15), 55, -22);
-                    ctx.stroke();
+                    ctx.arc(-17, -5, 8.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (bossIndex === 2) {
+                        ctx.fillStyle = '#1e293b';
+                        ctx.beginPath();
+                        ctx.moveTo(-17, -13.5); ctx.lineTo(-14, -19); ctx.lineTo(-20, -13.5);
+                        ctx.moveTo(-20, -12); ctx.lineTo(-22, -17); ctx.lineTo(-23, -11);
+                        ctx.fill();
+                    } else if (bossIndex === 3) {
+                        ctx.fillStyle = '#fbbf24'; 
+                        ctx.strokeStyle = '#d97706';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(-22, -13); ctx.lineTo(-24, -18); ctx.lineTo(-20, -15); ctx.lineTo(-17, -20); ctx.lineTo(-14, -15); ctx.lineTo(-10, -18); ctx.lineTo(-12, -13);
+                        ctx.closePath(); ctx.fill(); ctx.stroke();
+                    }
+
+                    let beakGrad = ctx.createLinearGradient(-17, -5, -29, -2);
+                    beakGrad.addColorStop(0, '#facc15'); beakGrad.addColorStop(1, '#d97706');
+                    ctx.fillStyle = beakGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(-17, -8); ctx.quadraticCurveTo(-27, -7, -29, -1); ctx.quadraticCurveTo(-23, 3, -17, 2);
+                    ctx.closePath(); ctx.fill();
+
+                    ctx.fillStyle = this.eyeColor;
+                    ctx.beginPath(); ctx.arc(-19, -6, 2, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(-23, -9); ctx.lineTo(-15, -8); ctx.stroke();
+
+                    ctx.fillStyle = bossIndex === 1 ? '#78350f' : (bossIndex === 2 ? '#64748b' : '#14b8a6');
+                    ctx.save();
+                    ctx.rotate(-wingAngle);
+                    ctx.beginPath();
+                    ctx.moveTo(3, 2); ctx.quadraticCurveTo(10, -22, 22, -28); ctx.quadraticCurveTo(16, -14, 11, -5); ctx.quadraticCurveTo(2, 0, -5, 2);
+                    ctx.closePath(); ctx.fill();
                     
-                    ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)';
+                    ctx.strokeStyle = bossIndex === 3 ? '#99f6e4' : 'rgba(255,255,255,0.2)';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.moveTo(18, -10);
-                    ctx.quadraticCurveTo(30, -10 - (wingAngle * 10), 45, -6);
+                    ctx.moveTo(9, -9); ctx.lineTo(15, -18);
+                    ctx.moveTo(12, -4); ctx.lineTo(18, -10);
                     ctx.stroke();
+
+                    if (bossIndex === 3) {
+                        ctx.strokeStyle = 'rgba(20, 184, 166, 0.4)'; ctx.lineWidth = 2.5;
+                        ctx.beginPath(); ctx.moveTo(22, -28); ctx.quadraticCurveTo(35, -28 - (wingAngle * 15), 55, -22); ctx.stroke();
+                        ctx.strokeStyle = 'rgba(250, 204, 21, 0.3)'; ctx.lineWidth = 1.5;
+                        ctx.beginPath(); ctx.moveTo(18, -10); ctx.quadraticCurveTo(30, -10 - (wingAngle * 10), 45, -6); ctx.stroke();
+                    }
+                    ctx.restore();
+
+                } else if (bossIndex === 4) {
+                    const segmentCount = 10;
+                    for (let i = segmentCount - 1; i >= 0; i--) {
+                        const wave = Math.sin(this.anim * 0.15 - i * 0.8) * 8;
+                        const segmentX = i * 6 - 15;
+                        const segmentY = wave;
+                        const size = 11 - (i * 0.4);
+                        
+                        let segmentColor = '#ef4444';
+                        if (i % 4 === 1 || i % 4 === 3) segmentColor = '#18181b';
+                        else if (i % 4 === 2) segmentColor = '#eab308';
+                        
+                        ctx.fillStyle = segmentColor;
+                        ctx.beginPath();
+                        ctx.arc(segmentX, segmentY, size, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                    
+                    const headX = -20;
+                    const headY = Math.sin(this.anim * 0.15 + 0.8) * 8;
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath();
+                    ctx.arc(headX, headY, 13, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = this.eyeColor;
+                    ctx.beginPath();
+                    ctx.arc(headX - 4, headY - 3, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(headX - 5, headY - 3, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#f43f5e';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(headX - 12, headY + 1);
+                    ctx.lineTo(headX - 22 - (Math.abs(Math.sin(this.anim * 0.3)) * 4), headY + 1 + Math.sin(this.anim * 0.4) * 2);
+                    ctx.stroke();
+
+                } else if (bossIndex === 5) {
+                    let tailGrad = ctx.createLinearGradient(10, 0, 40, -10);
+                    tailGrad.addColorStop(0, '#52525b');
+                    tailGrad.addColorStop(1, '#27272a');
+                    ctx.fillStyle = tailGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(12, 5);
+                    ctx.quadraticCurveTo(35, -25 + Math.sin(this.anim * 0.15) * 5, 45, -5);
+                    ctx.quadraticCurveTo(30, 15, 12, 10);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#27272a';
+                    ctx.fillRect(5, 5, 5, 16);
+                    ctx.fillRect(-15, 5, 5, 16);
+                    
+                    let bodyGrad = ctx.createLinearGradient(-20, -15, 20, 10);
+                    bodyGrad.addColorStop(0, '#a1a1aa');
+                    bodyGrad.addColorStop(0.5, '#52525b');
+                    bodyGrad.addColorStop(1, '#27272a');
+                    ctx.fillStyle = bodyGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 24, 14, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(-15, 10);
+                    ctx.lineTo(0, -10);
+                    ctx.stroke();
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-13, 10);
+                    ctx.lineTo(1, -9);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#52525b';
+                    ctx.beginPath();
+                    ctx.moveTo(-18, -4);
+                    ctx.lineTo(-38, -6 + Math.sin(this.anim * 0.08) * 2);
+                    ctx.lineTo(-38, -1 + Math.sin(this.anim * 0.08) * 2);
+                    ctx.lineTo(-18, 8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(-38, -3.5 + Math.sin(this.anim * 0.08) * 2, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(-22, -1, 1, 0, Math.PI * 2);
+                    ctx.fill();
+
+                } else if (bossIndex === 6) {
+                    ctx.save();
+                    if (this.state === 'attack') {
+                        ctx.rotate(-this.anim * 0.15);
+                    }
+                    
+                    const r = 22;
+                    let shellGrad = ctx.createRadialGradient(-3, -3, 3, 0, 0, r);
+                    shellGrad.addColorStop(0, '#f59e0b');
+                    shellGrad.addColorStop(0.6, '#b45309');
+                    shellGrad.addColorStop(1, '#451a03');
+                    ctx.fillStyle = shellGrad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.lineWidth = 1.8;
+                    for (let i = 0; i < 4; i++) {
+                        let plateR = r - (i * 4.5);
+                        ctx.strokeStyle = '#fef08a';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, plateR, -Math.PI / 3, Math.PI / 3);
+                        ctx.stroke();
+                        
+                        ctx.strokeStyle = '#451a03';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, plateR, Math.PI * 0.7, Math.PI * 1.3);
+                        ctx.stroke();
+                    }
+                    
+                    if (this.state !== 'attack') {
+                        ctx.fillStyle = '#b45309';
+                        ctx.beginPath();
+                        ctx.moveTo(-r + 3, -4);
+                        ctx.lineTo(-r - 12, 2);
+                        ctx.lineTo(-r + 2, 8);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        ctx.fillStyle = this.eyeColor;
+                        ctx.beginPath();
+                        ctx.arc(-r - 3, 1, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(-r + 2, -5, 3, 6, -0.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+
+                } else if (bossIndex === 7) {
+                    const throatExpand = Math.sin(this.anim * 0.12) * 5 + 5;
+                    
+                    ctx.fillStyle = '#a3e635';
+                    ctx.beginPath();
+                    ctx.arc(-10, 8, 8 + throatExpand, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#4d7c0f';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#166534';
+                    ctx.beginPath();
+                    ctx.ellipse(15, 12, 12, 6, -0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#14532d';
+                    ctx.beginPath();
+                    ctx.ellipse(-8, 14, 6, 4, 0.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    let bodyGrad = ctx.createLinearGradient(-15, -15, 15, 15);
+                    bodyGrad.addColorStop(0, '#22c55e');
+                    bodyGrad.addColorStop(0.6, '#15803d');
+                    bodyGrad.addColorStop(1, '#14532d');
+                    ctx.fillStyle = bodyGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 24, 16, 0.05, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#1e3a1e';
+                    ctx.beginPath();
+                    ctx.arc(5, -6, 3, 0, Math.PI * 2);
+                    ctx.arc(14, -2, 2.5, 0, Math.PI * 2);
+                    ctx.arc(-4, -8, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = this.eyeColor;
+                    ctx.beginPath();
+                    ctx.arc(-14, -13, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.ellipse(-14, -13, 2, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#14532d';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(-18, 2, 6, Math.PI * 1.8, Math.PI * 0.2);
+                    ctx.stroke();
+
+                } else if (bossIndex === 8) {
+                    const runningLegs = Math.sin(this.anim * 0.25) * 8;
+                    
+                    ctx.fillStyle = '#ea580c';
+                    ctx.fillRect(8, 6, 4.5, 15 + runningLegs);
+                    ctx.fillRect(-12, 6, 4.5, 15 - runningLegs);
+                    
+                    ctx.fillStyle = '#c2410c';
+                    ctx.fillRect(14, 6, 4.5, 15 - runningLegs);
+                    ctx.fillRect(-6, 6, 4.5, 15 + runningLegs);
+                    
+                    ctx.strokeStyle = '#f97316';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(18, -4);
+                    ctx.quadraticCurveTo(32, -15 + Math.sin(this.anim * 0.15) * 10, 38, -2);
+                    ctx.stroke();
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(38, -2, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    let bodyGrad = ctx.createLinearGradient(-18, -12, 18, 12);
+                    bodyGrad.addColorStop(0, '#fca5a5');
+                    bodyGrad.addColorStop(0.4, '#f97316');
+                    bodyGrad.addColorStop(1, '#c2410c');
+                    ctx.fillStyle = bodyGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 22, 12, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#1e293b';
+                    ctx.beginPath();
+                    ctx.arc(-5, -6, 2, 0, Math.PI * 2);
+                    ctx.arc(5, -4, 1.8, 0, Math.PI * 2);
+                    ctx.arc(-12, -2, 2.2, 0, Math.PI * 2);
+                    ctx.arc(12, 1, 2, 0, Math.PI * 2);
+                    ctx.arc(0, 4, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#f97316';
+                    ctx.beginPath();
+                    ctx.ellipse(-20, -7, 9, 8, 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.ellipse(-18, -14, 3, 4, -0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#a3e635';
+                    ctx.beginPath();
+                    ctx.arc(-22, -9, 1.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(-22.5, -9, 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(-25, -4, 4, 3, 0.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath();
+                    ctx.arc(-28, -5, 1, 0, Math.PI * 2);
+                    ctx.fill();
                 }
                 
                 ctx.restore();
