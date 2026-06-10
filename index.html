@@ -201,6 +201,20 @@
 
         @media (min-width: 768px) {
             .mobile-controls { display: none; }
+            body.custom-mode-active .mobile-controls { display: block !important; }
+            body.show-controls-desktop .mobile-controls { display: block !important; }
+        }
+
+        .customizing {
+            outline: 2px dashed #eab308 !important;
+            outline-offset: 4px;
+            cursor: move !important;
+            user-select: none;
+            touch-action: none;
+        }
+        .custom-selected {
+            outline: 3px solid #3b82f6 !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
         }
     </style>
 </head>
@@ -424,6 +438,7 @@
                 <h2 class="text-5xl text-yellow-400 text-center font-black pixel-font drop-shadow-glow" t="pause">PAUSE</h2>
                 <div class="flex flex-col gap-4 w-full min-w-[200px]">
                     <button onclick="togglePause()" class="w-full py-5 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-2xl shadow-xl transition-all uppercase tracking-widest" t="continue">CONTINUE</button>
+                    <button onclick="toggleLayoutCustomMode(true);" class="w-full py-3 bg-blue-600/80 hover:bg-blue-500 text-white font-bold rounded-xl border-b-4 border-blue-900 transition-all active:translate-y-1 active:border-b-0 text-xs uppercase" t="customize_ui">⚙️ CUSTOMIZE UI</button>
                     <button onclick="CrazyGamesEngine.inviteFriend()" class="w-full py-3 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 font-bold rounded-xl border border-blue-500/20 transition-all text-xs uppercase" t="invite">INVITE FRIENDS</button>
                     <button onclick="goToStartScreen()" class="w-full py-3 bg-white/5 hover:bg-white/10 text-white/60 font-bold rounded-xl transition-colors text-sm uppercase" t="exit">EXIT</button>
                 </div>
@@ -462,7 +477,7 @@
             <button id="btnRight" class="w-16 h-14 bg-white/10 text-white rounded-xl font-black border border-white/10 shadow-xl flex items-center justify-center text-xl pointer-events-auto">&gt;</button>
         </div>
         <!-- Especiais (Língua e Instinto) -->
-        <div id="mobileSpecials" class="absolute bottom-6 right-36 flex gap-2 pointer-events-auto scale-95 origin-bottom-right transition-shadow duration-300" style="padding-bottom: env(safe-area-inset-bottom);">
+        <div id="mobileSpecials" class="absolute bottom-24 left-6 flex gap-2 pointer-events-auto scale-95 origin-bottom-left transition-shadow duration-300" style="padding-bottom: env(safe-area-inset-bottom);">
             <button id="btnHook" class="w-14 h-14 bg-white/5 text-amber-400 rounded-full font-black border border-amber-500/20 shadow-xl backdrop-blur-sm flex items-center justify-center text-lg pointer-events-auto">👅</button>
             <button id="btnFocus" class="w-14 h-14 bg-white/5 text-orange-400 rounded-full font-black border border-orange-500/20 shadow-xl backdrop-blur-sm flex items-center justify-center text-lg pointer-events-auto">👁️</button>
         </div>
@@ -517,6 +532,225 @@
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', adjustViewport);
             window.visualViewport.addEventListener('scroll', adjustViewport);
+        }
+
+        // ==========================================
+        // UI CUSTOMIZATION & DRAG-AND-RESIZE LOGIC
+        // ==========================================
+        const customizedElementIds = ['mobileMoves', 'mobileSpecials', 'mobileActions', 'lifeHUD', 'scoreHUD', 'coinHUD', 'btnPause'];
+        let activeCustomElement = null;
+        let isCustomMode = false;
+
+        function loadCustomLayout() {
+            let hasCustom = false;
+            customizedElementIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const saved = localStorage.getItem('layout_' + id);
+                if (saved) {
+                    hasCustom = true;
+                    try {
+                        const config = JSON.parse(saved);
+                        el.style.left = config.left;
+                        el.style.top = config.top;
+                        el.style.bottom = config.bottom || 'auto';
+                        el.style.right = config.right || 'auto';
+                        el.style.transform = `scale(${config.scale || 1})`;
+                        el.dataset.scale = config.scale || 1;
+                    } catch (e) {
+                        console.error("Error loading layout for " + id, e);
+                    }
+                } else {
+                    el.dataset.scale = 1;
+                }
+            });
+            if (hasCustom) {
+                document.body.classList.add('show-controls-desktop');
+            } else {
+                document.body.classList.remove('show-controls-desktop');
+            }
+        }
+
+        function toggleLayoutCustomMode(active) {
+            isCustomMode = active;
+            const panel = document.getElementById('layoutCustomizerPanel');
+            const hud = document.getElementById('hudHUD');
+            const mobileControls = document.getElementById('mobileControls');
+            const btnPause = document.getElementById('btnPause');
+            
+            if (active) {
+                document.body.classList.add('custom-mode-active');
+                panel.classList.remove('hidden');
+                
+                // Hide pause screen so it doesn't show behind customizer
+                document.getElementById('pauseScreen').classList.add('hidden');
+                
+                // Exibe HUD e Controles para edição
+                hud.classList.remove('hidden');
+                mobileControls.classList.remove('hidden');
+                btnPause.classList.remove('hidden');
+                
+                customizedElementIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.style.pointerEvents = 'auto'; // Habilita clicks e arrastar
+                    el.classList.add('customizing');
+                    
+                    // Listener para selecionar
+                    el.onclick = (e) => {
+                        if (!isCustomMode) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        selectCustomElement(el);
+                    };
+                    
+                    setupDragElement(el);
+                });
+                
+                // Pausa o jogo caso esteja rodando
+                if (gameActive) {
+                    isPaused = true;
+                }
+            } else {
+                document.body.classList.remove('custom-mode-active');
+                panel.classList.add('hidden');
+                
+                customizedElementIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    el.classList.remove('customizing');
+                    el.classList.remove('custom-selected');
+                    el.style.pointerEvents = ''; // Restaura padrão
+                    
+                    // Remove listeners de eventos para evitar interferência na gameplay
+                    el.onmousedown = null;
+                    el.ontouchstart = null;
+                    el.onclick = null;
+                    
+                    const config = {
+                        left: el.style.left,
+                        top: el.style.top,
+                        bottom: el.style.bottom,
+                        right: el.style.right,
+                        scale: parseFloat(el.dataset.scale) || 1
+                    };
+                    localStorage.setItem('layout_' + id, JSON.stringify(config));
+                });
+                
+                // Se o jogo estava ativo, volta para a tela de pause
+                if (gameActive) {
+                    document.getElementById('pauseScreen').classList.remove('hidden');
+                    document.getElementById('btnPause').classList.add('hidden');
+                } else {
+                    document.getElementById('startScreen').classList.remove('hidden');
+                    document.getElementById('hudHUD').classList.add('hidden');
+                    document.getElementById('mobileControls').classList.add('hidden');
+                }
+            }
+        }
+
+        function setupDragElement(el) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            el.onmousedown = dragMouseDown;
+            el.ontouchstart = dragTouchStart;
+            
+            function dragMouseDown(e) {
+                if (!isCustomMode) return;
+                e.preventDefault();
+                selectCustomElement(el);
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+            
+            function dragTouchStart(e) {
+                if (!isCustomMode) return;
+                selectCustomElement(el);
+                const touch = e.touches[0];
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                document.ontouchend = closeDragElement;
+                document.ontouchmove = elementTouchDrag;
+            }
+            
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                updatePosition(pos1, pos2);
+            }
+            
+            function elementTouchDrag(e) {
+                const touch = e.touches[0];
+                pos1 = pos3 - touch.clientX;
+                pos2 = pos4 - touch.clientY;
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                updatePosition(pos1, pos2);
+            }
+            
+            function updatePosition(dx, dy) {
+                const rect = el.getBoundingClientRect();
+                let newLeft = el.offsetLeft - dx;
+                let newTop = el.offsetTop - dy;
+                
+                newLeft = Math.max(0, Math.min(window.innerWidth - rect.width, newLeft));
+                newTop = Math.max(0, Math.min(window.innerHeight - rect.height, newTop));
+                
+                el.style.bottom = 'auto';
+                el.style.right = 'auto';
+                el.style.left = newLeft + 'px';
+                el.style.top = newTop + 'px';
+            }
+            
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                document.ontouchend = null;
+                document.ontouchmove = null;
+            }
+        }
+
+        function selectCustomElement(el) {
+            customizedElementIds.forEach(id => {
+                const other = document.getElementById(id);
+                if (other) other.classList.remove('custom-selected');
+            });
+            activeCustomElement = el;
+            el.classList.add('custom-selected');
+        }
+
+        function adjustActiveScale(amount) {
+            if (!activeCustomElement) {
+                alert(lang === 'en' ? 'Select an element first by clicking it!' : 'Selecione um elemento clicando nele primeiro!');
+                return;
+            }
+            let currentScale = parseFloat(activeCustomElement.dataset.scale) || 1;
+            currentScale += amount;
+            currentScale = Math.max(0.5, Math.min(2.5, currentScale));
+            activeCustomElement.dataset.scale = currentScale;
+            activeCustomElement.style.transform = `scale(${currentScale})`;
+        }
+
+        function resetCustomLayout() {
+            customizedElementIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                localStorage.removeItem('layout_' + id);
+                el.style.left = '';
+                el.style.top = '';
+                el.style.bottom = '';
+                el.style.right = '';
+                el.style.transform = '';
+                el.dataset.scale = 1;
+                el.classList.remove('custom-selected');
+            });
+            activeCustomElement = null;
+            document.body.classList.remove('show-controls-desktop');
         }
 
         // ==========================================
@@ -3176,6 +3410,7 @@
                 mission_coins: "Collect {0} coins",
                 mission_score: "Reach {0} pts",
                 controls: "Jump (↑) • Slide (↓) • Move (← →)",
+                customize_ui: "CUSTOMIZE UI",
                 shop_title: "SHOP",
                 shop_subtitle: "Equipment & Styles",
                 bonus_title: "Bonus Coins",
@@ -3233,6 +3468,7 @@
                 mission_coins: "Colete {0} moedas",
                 mission_score: "Chegue a {0} pts",
                 controls: "Pule (↑) • Deslize (↓) • Mova-se (← →)",
+                customize_ui: "AJUSTAR CONTROLES",
                 shop_title: "LOJA",
                 shop_subtitle: "Equipamentos & Estilos",
                 bonus_title: "Moedas Bonus",
@@ -4232,6 +4468,7 @@
             
             // 3. Atualizar UI
             updateUILanguage();
+            loadCustomLayout();
 
             // 4. Sinalizar que o carregamento terminou após um breve delay para garantir estabilidade
             setTimeout(() => {
