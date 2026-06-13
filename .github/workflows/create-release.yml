@@ -1,0 +1,26 @@
+name: Create Release on Tag
+
+on:
+  push:
+    tags:
+      - 'v-*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v4
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Calango Run Release ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          files: calango-debug-*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
