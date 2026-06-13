@@ -18,7 +18,7 @@ class Player {
     
     private val gravity = 2500f // pixels/s²
     private val jumpVelocity = -900f
-    private val groundY: Float
+    private var groundY: Float
     private var slideTimer = 0L
     private val slideDuration = 800L // ms
     

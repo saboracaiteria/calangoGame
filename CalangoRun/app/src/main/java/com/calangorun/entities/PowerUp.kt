@@ -23,7 +23,7 @@ class PowerUp {
     var speed: Float = 0f
     
     // Active timer (when collected)
-    var isActive = false
+    var isPowerUpActive = false
     private var activeTime = 0L
     private val duration = 10000L // 10 seconds
     
@@ -36,10 +36,10 @@ class PowerUp {
     
     fun update(deltaTime: Float) {
         if (collected) {
-            if (isActive) {
+            if (isPowerUpActive) {
                 activeTime += (deltaTime * 1000).toLong()
                 if (activeTime >= duration) {
-                    isActive = false
+                    isPowerUpActive = false
                 }
             }
             return
@@ -50,21 +50,21 @@ class PowerUp {
     
     fun collect() {
         collected = true
-        isActive = true
+        isPowerUpActive = true
         activeTime = 0
     }
     
     fun isCollected(): Boolean = collected
     
-    fun isActive(): Boolean = isActive && activeTime < duration
+    fun isActive(): Boolean = isPowerUpActive && activeTime < duration
     
     fun getRemainingTime(): Long {
-        if (!isActive) return 0
+        if (!isPowerUpActive) return 0
         return duration - activeTime
     }
     
     fun draw(canvas: Canvas, paint: Paint) {
-        if (collected && !isActive) return
+        if (collected && !isPowerUpActive) return
         
         if (sprite != null) {
             val srcRect = Rect(0, 0, sprite!!.width, sprite!!.height)
