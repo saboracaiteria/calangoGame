@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">Calango Run Deluxe</string>
+    
+    <!-- Main Menu -->
+    <string name="play">Play</string>
+    <string name="shop">Shop</string>
+    <string name="settings">Settings</string>
+    <string name="high_score">High Score</string>
+    
+    <!-- Game Over -->
+    <string name="game_over">Game Over</string>
+    <string name="score">Score</string>
+    <string name="play_again">Play Again</string>
+    <string name="menu">Main Menu</string>
+    
+    <!-- Shop -->
+    <string name="buy">Buy</string>
+    <string name="equip">Equip</string>
+    <string name="equipped">Equipped</string>
+    <string name="coins">Coins</string>
+    <string name="skins">Skins</string>
+    <string name="hats">Hats</string>
+    <string name="trails">Trails</string>
+    
+    <!-- Settings -->
+    <string name="volume">Volume</string>
+    <string name="language">Language</string>
+    <string name="graphics_quality">Graphics Quality</string>
+    <string name="sound">Sound</string>
+    <string name="music">Music</string>
+    
+    <!-- Power-ups -->
+    <string name="powerup_pepper">Pepper</string>
+    <string name="powerup_magnet">Magnet</string>
+    <string name="powerup_leaf">Leaf</string>
+    
+    <!-- Notifications -->
+    <string name="not_enough_coins">Not enough coins!</string>
+    <string name="item_purchased">Item purchased!</string>
+    <string name="new_high_score">New High Score!</string>
+    
+    <!-- Controls -->
+    <string name="jump">Jump</string>
+    <string name="slide">Slide</string>
+    <string name="pause">Pause</string>
+</resources>
