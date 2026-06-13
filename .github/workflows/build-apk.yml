@@ -41,54 +41,16 @@ jobs:
           api-level: 34
           build-tools: 34.0.0
       
-      - name: Dar permissao de execucao ao gradlew
-        working-directory: ./CalangoRun
-        run: chmod +x gradlew
-      
-      - name: Cache das dependencias do Gradle
-        uses: actions/cache@v4
+      - name: Build com Gradle
+        uses: gradle/gradle-build-action@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      
-      - name: Build APK Debug
-        if: github.event.inputs.build_type != 'release'
-        working-directory: ./CalangoRun
-        run: ./gradlew assembleDebug
-      
-      - name: Build APK Release
-        if: github.event.inputs.build_type == 'release'
-        working-directory: ./CalangoRun
-        run: ./gradlew assembleRelease
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          gradle-version: 8.5
+          arguments: assembleDebug
+          build-root-directory: CalangoRun
       
       - name: Upload APK Debug
-        if: github.event.inputs.build_type != 'release'
         uses: actions/upload-artifact@v4
         with:
           name: calango-run-debug
           path: CalangoRun/app/build/outputs/apk/debug/*.apk
-          retention-days: 90
-      
-      - name: Upload APK Release
-        if: github.event.inputs.build_type == 'release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: calango-run-release
-          path: CalangoRun/app/build/outputs/apk/release/*.apk
-          retention-days: 90
-      
-      - name: Upload mapping.txt (Release apenas)
-        if: github.event.inputs.build_type == 'release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: mapping
-          path: CalangoRun/app/build/outputs/mapping/**/mapping.txt
           retention-days: 90
