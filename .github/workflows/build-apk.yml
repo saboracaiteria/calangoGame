@@ -21,6 +21,9 @@ on:
           - debug
           - release
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,9 +51,27 @@ jobs:
           arguments: assembleDebug
           build-root-directory: CalangoRun
       
-      - name: Upload APK Debug
+      - name: Upload APK Debug Artifact
         uses: actions/upload-artifact@v4
         with:
           name: calango-run-debug
           path: CalangoRun/app/build/outputs/apk/debug/*.apk
           retention-days: 90
+
+      - name: Preparar Tag e Nome da Release
+        id: prep
+        run: |
+          echo "TAG_NAME=build-${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=Calango Run Build #${{ github.run_number }} ($(date +'%d/%m/%Y %H:%M'))" >> $GITHUB_OUTPUT
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: ${{ steps.prep.outputs.TAG_NAME }}
+          name: ${{ steps.prep.outputs.RELEASE_NAME }}
+          draft: false
+          prerelease: true
+          files: CalangoRun/app/build/outputs/apk/debug/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
