@@ -11,7 +11,7 @@ import android.view.SurfaceView
 import com.calangorun.managers.GameManager
 import com.calangorun.managers.GameManager.GameState
 
-class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, attrs),
+class GameView(context: Context, attrs: AttributeSet? = null) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
 
     private val gameLoop = GameLoop(this)
@@ -44,7 +44,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
         }
     }
 
-    fun draw(canvas: Canvas) {
+    fun render(canvas: Canvas) {
         // Clear canvas
         canvas.drawColor(Color.BLACK)
 

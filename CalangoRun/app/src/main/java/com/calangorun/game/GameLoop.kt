@@ -25,7 +25,7 @@ class GameLoop(private val gameView: GameView) : Thread() {
                     gameView.update()
                     
                     // Render
-                    gameView.draw(canvas)
+                    gameView.render(canvas)
                 } finally {
                     gameView.holder.unlockCanvasAndPost(canvas)
                 }
