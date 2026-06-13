@@ -6,6 +6,9 @@ Write-Host "  Calango Run - Build & Publish to Releases  " -ForegroundColor Cyan
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Set JAVA_HOME to Android Studio JBR for correct JDK version
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+
 # 1. Build APK locally
 Write-Host "[1/5] Building Android APK locally..." -ForegroundColor Yellow
 cd CalangoRun
