@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Create Calango Run Fix Spec",
+  "description": "Create spec file for fixing Android Calango Run code",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Create a detailed spec file at .kiro/specs/calango-run-fixes.md to fix all fake placeholders and incomplete logic in the Android Kotlin code to match the HTML functionality.\n\nThe project is at: c:\\Users\\Terminal\\Documents\\gemini\\CALANGO2\\CalangoRun\n\nCRITICAL ISSUES TO FIX:\n1. InputHandler.kt has TWO versions - the second one is a placeholder (lines 73-113)\n2. Animation.kt is missing or empty\n3. AudioManager.kt only generates beeps, should load real audio files\n4. GameView.kt has simplified controls missing swipe detection\n5. GameManager.kt needs real AABB collision detection\n6. Power-ups need actual gameplay effects (Pepper=speed up, Magnet=coin attraction, Leaf=invisibility)\n7. Missing particle system integration\n8. Missing shop UI implementation\n\nTasks:\n1. Read index.html and extract:\n   - Full Dino class implementation (physics, drawing, animation)\n   - Game loop with delta time\n   - All collision detection logic\n   - Power-up effects implementation\n   - Shop UI drawing\n   - Weather system\n   - Revive system\n   - Focus mechanic\n\n2. Rewrite Android Kotlin files to match HTML functionality:\n   - Fix InputHandler.kt (keep first version, delete second)\n   - Implement complete Animation.kt\n   - Fix AudioManager.kt with real audio loading\n   - Fix GameView.kt with proper controls\n   - Fix GameManager.kt with real collision and gameplay\n   - Add shop UI drawing\n   - Add weather system integration\n   - Add revive system\n   - Add focus mechanic\n\n3. Make sure all entities (Player, Obstacle, Coin, PowerUp, Boss) have:\n   - Real bounds calculation\n   - Proper update/draw methods\n   - Collision detection\n\n4. Test that the game has:\n   - 60 FPS loop\n   - Working jump/slide/move mechanics\n   - Collision detection\n   - Power-up effects\n   - Boss fights\n   - Shop UI\n   - Day/night cycle\n   - Particle effects\n   - Save/load\n\nIMPORTANT: Make the Android version WORK EXACTLY like the HTML version. No placeholders, no fake code.\n\nStart with the Requirements section first."
+  }
+}

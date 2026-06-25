@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calango Run Deluxe</string>
+    <string name="loading">Carregando…</string>
+    <string name="web_view_error">Erro ao carregar o jogo. Verifique sua conexão.</string>
+    <string name="reload">Recarregar</string>
+</resources>

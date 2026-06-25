@@ -1,0 +1,55 @@
+Create a detailed spec file at .kiro/specs/calango-run-fixes.md to fix all fake placeholders and incomplete logic in the Android Kotlin code to match the HTML functionality.
+
+The project is at: c:\Users\Terminal\Documents\gemini\CALANGO2\CalangoRun
+
+CRITICAL ISSUES TO FIX:
+1. InputHandler.kt has TWO versions - the second one is a placeholder (lines 73-113)
+2. Animation.kt is missing or empty
+3. AudioManager.kt only generates beeps, should load real audio files
+4. GameView.kt has simplified controls missing swipe detection
+5. GameManager.kt needs real AABB collision detection
+6. Power-ups need actual gameplay effects (Pepper=speed up, Magnet=coin attraction, Leaf=invisibility)
+7. Missing particle system integration
+8. Missing shop UI implementation
+
+Tasks:
+1. Read index.html and extract:
+   - Full Dino class implementation (physics, drawing, animation)
+   - Game loop with delta time
+   - All collision detection logic
+   - Power-up effects implementation
+   - Shop UI drawing
+   - Weather system
+   - Revive system
+   - Focus mechanic
+
+2. Rewrite Android Kotlin files to match HTML functionality:
+   - Fix InputHandler.kt (keep first version, delete second)
+   - Implement complete Animation.kt
+   - Fix AudioManager.kt with real audio loading
+   - Fix GameView.kt with proper controls
+   - Fix GameManager.kt with real collision and gameplay
+   - Add shop UI drawing
+   - Add weather system integration
+   - Add revive system
+   - Add focus mechanic
+
+3. Make sure all entities (Player, Obstacle, Coin, PowerUp, Boss) have:
+   - Real bounds calculation
+   - Proper update/draw methods
+   - Collision detection
+
+4. Test that the game has:
+   - 60 FPS loop
+   - Working jump/slide/move mechanics
+   - Collision detection
+   - Power-up effects
+   - Boss fights
+   - Shop UI
+   - Day/night cycle
+   - Particle effects
+   - Save/load
+
+IMPORTANT: Make the Android version WORK EXACTLY like the HTML version. No placeholders, no fake code.
+
+Start with the Requirements section first.
